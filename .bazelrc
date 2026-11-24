@@ -17,4 +17,16 @@ common --lockfile_mode=error
 # to, so the declared minimums stay honest.
 common --check_direct_dependencies=error
 
+# `common:windows` lines apply on Windows only (preset.bazelrc sets this
+# too; it is stated here so the lines below never depend on the preset).
+common --enable_platform_specific_config
+
+# Runfiles trees on Windows too, as on macOS and Linux: the tree checks and
+# the test scripts find their tools and data through them.
+common:windows --enable_runfiles
+
+# Real symlinks in runfiles trees on Windows. Without them Bazel copies the
+# files, and the copies go stale between builds.
+startup --windows_enable_symlinks
+
 try-import %workspace%/.bazelrc.user
