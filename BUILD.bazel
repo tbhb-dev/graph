@@ -338,9 +338,15 @@ format_test(
 
 # `bazel run //:bazel_env` puts shims for the Bazel-pinned tools in
 # .bazel_env/bin, which mise adds to PATH. Git hooks call them directly, so
-# a commit never waits on the Bazel server.
+# a commit never waits on the Bazel server. bazel_env.bzl builds its bin
+# directory with POSIX tools that fail under Windows' Bash, so the shims
+# are for macOS and Linux.
 bazel_env(
     name = "bazel_env",
+    target_compatible_with = select({
+        "@@platforms//os:windows": ["@@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     tools = {
         "actionlint": "@tbhb_rules_actionlint//:actionlint",
         "buildifier": "@buildifier_prebuilt//:buildifier",
