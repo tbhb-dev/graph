@@ -16,14 +16,64 @@ from typing import TYPE_CHECKING
 import pytest
 from temporalio.client import Client
 
-from tbhbgraph.temporal import PingWorkflow, run_worker
+from tbhbgraph.temporal import PingWorkflow, echo, run_worker
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Awaitable, Callable, Iterator
     from pathlib import Path
 
 
 _LOG = logging.getLogger(__name__)
+
+
+def test_echo() -> None:
+    assert asyncio.run(echo("ping")) == "ping"
+
+
+def test_ping_workflow_without_server(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def execute_activity(
+        activity: Callable[[str], Awaitable[str]],
+        value: str,
+        *,
+        start_to_close_timeout: timedelta,
+    ) -> str:
+        assert activity is echo
+        assert start_to_close_timeout == timedelta(seconds=10)
+        return value
+
+    monkeypatch.setattr("temporalio.workflow.execute_activity", execute_activity)
+    assert asyncio.run(PingWorkflow().run("ping")) == "ping"
+
+
+def test_run_worker_without_server(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = object()
+    runs: list[bool] = []
+
+    async def connect(address: str) -> object:
+        assert address == "localhost:7233"
+        return client
+
+    class FakeWorker:
+        def __init__(
+            self,
+            connected_client: object,
+            *,
+            task_queue: str,
+            workflows: list[type[PingWorkflow]],
+            activities: list[Callable[[str], Awaitable[str]]],
+        ) -> None:
+            assert connected_client is client
+            assert task_queue == "test-ping"
+            assert workflows == [PingWorkflow]
+            assert activities == [echo]
+
+        async def run(self) -> None:
+            runs.append(True)
+
+    monkeypatch.setattr("temporalio.client.Client.connect", connect)
+    monkeypatch.setattr("tbhbgraph.temporal.Worker", FakeWorker)
+    asyncio.run(run_worker("localhost:7233", "test-ping"))
+    assert runs == [True]
 
 
 @pytest.fixture
