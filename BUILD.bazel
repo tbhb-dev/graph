@@ -184,8 +184,12 @@ pytest_test(
     args = [
         "-n",
         "auto",
+        "-rP",
+        "--log-level=INFO",
     ],
     coverage = ["src/tbhbgraph"],
+    env = {"TEMPORAL_BINARY": "temporal"},
+    path_tools = [":temporal"],
 )
 
 # The advisory database changes without any input changing: pip_audit_test
