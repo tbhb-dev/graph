@@ -126,3 +126,10 @@ def test_adr_link_first_line_wins(linked_issue: DecisionIssue) -> None:
         linked_issue, body=linked_issue.body + "\nADR: docs/adr/0002-next.md"
     )
     assert adr_link(issue) == "docs/adr/0001-example.md"
+
+
+@pytest.mark.parametrize(
+    "body", ["adr: docs/adr/example.md", " ADR: docs/adr/example.md"]
+)
+def test_adr_link_requires_exact_prefix(linked_issue: DecisionIssue, body: str) -> None:
+    assert adr_link(replace(linked_issue, body=body)) is None

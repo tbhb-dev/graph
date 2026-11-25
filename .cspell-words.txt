@@ -1,4 +1,5 @@
 addopts
+adrs
 bazelignore
 bazelisk
 bazelrc
@@ -14,6 +15,7 @@ defn
 deptry
 docstrings
 dunder
+executescript
 frontmatter
 gitleaks
 govulncheck

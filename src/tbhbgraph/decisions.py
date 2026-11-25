@@ -28,6 +28,7 @@ class Adr:
 
 
 def adr_link(issue: DecisionIssue) -> str | None:
+    # TECH-DEBT: This team convention awaits a Decision workflow specification.
     for line in issue.body.splitlines():
         if line.startswith("ADR: "):
             return line.removeprefix("ADR: ")
