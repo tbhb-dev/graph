@@ -47,10 +47,49 @@ use_repo(
 # Dev dependencies: tooling that only this workspace needs.
 bazel_dep(name = "buildifier_prebuilt", version = "10.1.0", dev_dependency = True)
 bazel_dep(name = "bazelrc-preset.bzl", version = "1.10.0", dev_dependency = True)
+bazel_dep(name = "platforms", version = "1.1.0", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
 
 # Stable paths and PATH shims (.bazel_env/bin) for the Bazel-pinned tools,
 # which git hooks and editors call without starting Bazel.
 bazel_dep(name = "bazel_env.bzl", version = "0.10.0", dev_dependency = True)
+
+# Temporal CLI for local development and the dev-server smoke test.
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+_TEMPORAL_RELEASE = "https://github.com/temporalio/cli/releases/download/v1.10.0/"
+
+http_archive(
+    name = "temporal_cli_linux_amd64",
+    build_file_content = 'exports_files(["temporal"])',
+    dev_dependency = True,
+    sha256 = "521f461f3d108902763bb71e85cd0fd382dc9357b59604ae03da6ae734d16890",
+    url = _TEMPORAL_RELEASE + "temporal_cli_1.10.0_linux_amd64.tar.gz",
+)
+
+http_archive(
+    name = "temporal_cli_linux_arm64",
+    build_file_content = 'exports_files(["temporal"])',
+    dev_dependency = True,
+    sha256 = "6e526d2f089bf5acead2129f1f63e303b848410d5d9d86b9255359dcea6eaaa8",
+    url = _TEMPORAL_RELEASE + "temporal_cli_1.10.0_linux_arm64.tar.gz",
+)
+
+http_archive(
+    name = "temporal_cli_darwin_arm64",
+    build_file_content = 'exports_files(["temporal"])',
+    dev_dependency = True,
+    sha256 = "40a76ef7d525e6195b083e4cd50b184cc3bb242fea7f8dda2b9a8698ecbb7379",
+    url = _TEMPORAL_RELEASE + "temporal_cli_1.10.0_darwin_arm64.tar.gz",
+)
+
+http_archive(
+    name = "temporal_cli_windows_amd64",
+    build_file_content = 'exports_files(["temporal.exe"])',
+    dev_dependency = True,
+    sha256 = "b95695d08a564621b02322592bbb525a924f76cc892084fc3dd7d2e90f42b8bd",
+    url = _TEMPORAL_RELEASE + "temporal_cli_1.10.0_windows_amd64.zip",
+)
 
 # Pinned copies of the SchemaStore schemas that pyproject.toml's embedded
 # tombi schema refers to by URL, so //:tombi_test validates offline. Pinned

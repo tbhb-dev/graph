@@ -4,6 +4,7 @@
 load("@bazel_env.bzl", "bazel_env")
 load("@bazelrc-preset.bzl", "bazelrc_preset")
 load("@buildifier_prebuilt//:rules.bzl", "buildifier", "buildifier_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@tbhb_rules//format:defs.bzl", "format", "format_test")
 load(
     "@tbhb_rules//lint:defs.bzl",
@@ -336,6 +337,64 @@ format_test(
     formatters = FORMATTERS,
 )
 
+# Match the CLI binary to the platform running the development tools.
+config_setting(
+    name = "temporal_linux_amd64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "temporal_linux_arm64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+config_setting(
+    name = "temporal_darwin_arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+config_setting(
+    name = "temporal_windows_amd64",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+alias(
+    name = "temporal",
+    actual = select({
+        ":temporal_darwin_arm64": "@temporal_cli_darwin_arm64//:temporal",
+        ":temporal_linux_amd64": "@temporal_cli_linux_amd64//:temporal",
+        ":temporal_linux_arm64": "@temporal_cli_linux_arm64//:temporal",
+        ":temporal_windows_amd64": "@temporal_cli_windows_amd64//:temporal.exe",
+    }),
+)
+
+sh_test(
+    name = "temporal_dev_server_test",
+    size = "medium",
+    srcs = ["tests/temporal_dev_server_test.sh"],
+    args = ["$(rootpath :temporal)"],
+    data = [
+        "tests/lib/temporal_dev_server.sh",
+        ":temporal",
+    ],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
 # `bazel run //:bazel_env` puts shims for the Bazel-pinned tools in
 # .bazel_env/bin, which mise adds to PATH. Git hooks call them directly, so
 # a commit never waits on the Bazel server. bazel_env.bzl builds its bin
@@ -359,6 +418,7 @@ bazel_env(
         "ryl": "@tbhb_rules_ryl//:ryl",
         "shellcheck": "@tbhb_rules_shellcheck//:shellcheck",
         "shfmt": "@tbhb_rules_shfmt//:shfmt",
+        "temporal": ":temporal",
         "tombi": "@tbhb_rules_tombi//:tombi",
         "vale": "@tbhb_rules_vale//:vale",
         "zizmor": "@tbhb_rules_zizmor//:zizmor",
