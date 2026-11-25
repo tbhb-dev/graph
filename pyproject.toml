@@ -8,7 +8,10 @@ version = "0"
 description = "Graph plugin for tbhbdev"
 requires-python = ">=3.15"
 # tbhbdev loads this package; the package never imports tbhbdev.
-dependencies = ["click>=8.3.0"]
+dependencies = [
+  "click>=8.3.0",
+  "temporalio>=1.36.1",
+]
 
 # tbhbdev reads its plugins from this group (tbhbdev/plugins.py).
 [project.entry-points."tbhbdev.plugins"]

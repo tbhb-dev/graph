@@ -10,6 +10,7 @@ Cocogitto
 complexipy
 cpus
 cuda
+defn
 deptry
 docstrings
 dunder
@@ -45,6 +46,7 @@ starlark
 tbhb
 tbhbdev
 tbhbgraph
+temporalio
 tera
 testdata
 testpaths
